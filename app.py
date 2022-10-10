@@ -1,7 +1,8 @@
+from crypt import methods
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User
-from forms import NewUserForm
+from forms import NewUserForm, LoginForm
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
@@ -48,5 +49,20 @@ def register():
             return render_template("register.html", form=form)
         session["user_id"] = new_user.username
         flash("Welcome!  Account creation successful", "success")
+        return redirect("/secret")
 
     return render_template("register.html", form=form)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """
+    GET will display login page.
+    POST will log a user in
+    """
+    form = LoginForm()
+
+    return render_template("login.html", form=form)
+
+@app.route("/secret")
+def secret_route():
+    return render_template("secret.html")
