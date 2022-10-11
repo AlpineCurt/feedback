@@ -1,3 +1,4 @@
+from re import U
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
@@ -34,3 +35,16 @@ class User(db.Model):
             first_name=first_name,
             last_name=last_name
             )
+    
+    @classmethod
+    def authenticate(cls, username, password):
+        """
+        Authenticate that user exists and password is correct.
+        Return query of user if valid, False if not.
+        """
+        u = User.query.filter_by(username=username).first()
+
+        if u and bcrypt.check_password_hash(u.password, password):
+            return u
+        else:
+            return False

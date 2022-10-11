@@ -6,7 +6,7 @@ from forms import NewUserForm, LoginForm
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///feedback" # need a database
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///feedback"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = 'ilikecoffeeiliketea'
@@ -27,19 +27,13 @@ def register():
     POST will create the new user
     """
     form = NewUserForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        email = form.email.data
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-        
+    if form.validate_on_submit():       
         new_user = User.register(
-            username = username,
-            password = password,
-            email = email,
-            first_name = first_name,
-            last_name = last_name
+            username = form.username.data,
+            password = form.password.data,
+            email = form.email.data,
+            first_name = form.first_name.data,
+            last_name = form.last_name.data
         )
         db.session.add(new_user)
         try:
@@ -60,8 +54,23 @@ def login():
     POST will log a user in
     """
     form = LoginForm()
+    if form.validate_on_submit():
+        user = User.authenticate(form.username.data, form.password.data)
+        if user:
+            flash(f"Welcome back, {user.username}!", "primary")
+            session["user_id"] = user.username
+            return redirect("/secret")
+        else:
+            form.username.errors = ['Invalid username or password.']
 
     return render_template("login.html", form=form)
+
+@app.route("/logout")
+def logout():
+    """Logs out a user"""
+    session.pop('user_id')
+    flash("Goodbye!", "info")
+    return redirect("/")
 
 @app.route("/secret")
 def secret_route():
