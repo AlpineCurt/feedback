@@ -1,5 +1,5 @@
 from crypt import methods
-from flask import Flask, render_template, redirect, session, flash
+from flask import Flask, render_template, redirect, session, flash, request
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User, Feedback
 from forms import NewUserForm, LoginForm, FeedbackForm
@@ -79,6 +79,7 @@ def logout():
 
 @app.route("/users/<username>")
 def user_info(username):
+    """Display info about a user"""
     if "user_id" not in session:
         flash("Please login first!", "danger")
         return redirect('/login')
@@ -88,6 +89,10 @@ def user_info(username):
 
 @app.route("/users/<string:username>/feedback/add", methods=["GET", "POST"])
 def add_feedback(username):
+    """
+    GET displays form to post new feedback
+    POST adds the feedback to the database
+    """
     if "user_id" not in session:
         flash("Please login first!", "danger")
         return redirect('/login')
@@ -109,6 +114,58 @@ def add_feedback(username):
 
     return render_template("feedback.html", form=form, user=user)
 
+@app.route("/users/<username>/delete", methods=["POST"])
+def delete_user(username):
+    """Delete a user"""
+    if "user_id" not in session:
+        flash("Please login first!", "danger")
+        return redirect('/login')
+    if session["user_id"] != username:
+        flash("You cannot delete other user's accounts.", "danger")
+        return redirect("/")
+    user = User.query.filter_by(username=username).first()
+    db.session.delete(user)
+    db.session.commit()
+    session.pop('user_id')
+    return redirect("/")
+
+@app.route("/feedback/<int:feedback_id>/update", methods=["GET", "POST"])
+def update_feedback(feedback_id):
+    """
+    GET display form to edit feedback post.
+    POST submits changes to database.
+    """
+    if "user_id" not in session:
+        flash("Please login first!", "danger")
+        return redirect('/login')
+    feedback = Feedback.query.filter_by(id=feedback_id).first()
+    if session["user_id"] != feedback.username:
+        flash("You cannot edit other user's posts.", "danger")
+        return redirect("/")
+    form = FeedbackForm()
+    user = User.query.filter_by(username=session["user_id"]).first()
+    if form.validate_on_submit():
+        feedback.title = form.title.data
+        feedback.content = form.content.data
+        db.session.add(feedback)
+        db.session.commit()
+        return redirect(f"/users/{session['user_id']}")
+    form = FeedbackForm(obj=feedback)
+    return render_template("feedback_edit.html", form=form, user=user)
+    
+@app.route("/feedback/<feedback_id>/delete", methods=["POST"])
+def delete_feedback(feedback_id):
+    """Delete a feedback post"""
+    if "user_id" not in session:
+        flash("Please login first!", "danger")
+        return redirect('/login')
+    feedback = Feedback.query.filter_by(id=feedback_id).first()
+    if session["user_id"] != feedback.username:
+        flash("You cannot delete other user's posts.", "danger")
+        return redirect("/")
+    Feedback.query.filter_by(id=feedback_id).delete()
+    db.session.commit()
+    return redirect(f"/users/{session['user_id']}")
 
 @app.route("/secret")
 def secret_route():
