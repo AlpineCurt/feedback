@@ -18,11 +18,12 @@ toolbar=DebugToolbarExtension(app)
 
 @app.route("/")
 def home_page():
+    posts = Feedback.query.limit(10).all()
     if "user_id" in session:
         user = User.query.filter_by(username=session["user_id"]).first()
-        return render_template("index.html", user=user)
+        return render_template("feedback_list.html", user=user, posts=posts)
     else:
-        return render_template("index.html")
+        return render_template("feedback_list.html", posts=posts)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -82,7 +83,8 @@ def user_info(username):
         flash("Please login first!", "danger")
         return redirect('/login')
     user = User.query.filter_by(username=username).first()
-    return render_template('user_info.html', user=user)
+    posts = Feedback.query.filter_by(username=username).all()
+    return render_template('user_info.html', user=user, posts=posts)
 
 @app.route("/users/<string:username>/feedback/add", methods=["GET", "POST"])
 def add_feedback(username):

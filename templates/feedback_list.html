@@ -1,15 +1,6 @@
-{%  extends 'base.html' %}
+{% extends 'index.html' %}
 
-{% block title %}{{user.username}}{% endblock %}
-
-{% block content %}
-<div class="card my-4">
-    <div class="card-body">
-        <h5 class="card-title text-info">{{user.username}}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{user.first_name}} {{user.last_name}}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">{{user.email}}</h6>
-    </div>
-</div>
+{% block postlist %}
 <div>
     {% for post in posts %}
     <div class="card my-4">
@@ -17,6 +8,7 @@
             <h5 class="card_title text-info">
                 {{post.title}}
             </h5>
+            <h6 class="card-subtitle md-2 text-muted">by <a href="/users/{{post.username}}">{{post.username}}</a></h6>
             <p class="card-text">{{post.content}}</p>
             {% if session['user_id'] == post.username %}
             <div>
