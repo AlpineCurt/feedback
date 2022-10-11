@@ -1,0 +1,14 @@
+{%  extends 'base.html' %}
+
+{% block title %}{{user.username}}{% endblock %}
+
+{% block content %}
+<div class="card my-4">
+    <div class="card-body">
+        <h5 class="card-title text-info">{{user.username}}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{user.first_name}} {{user.last_name}}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">{{user.email}}</h6>
+    </div>
+</div>
+
+{% endblock %}
